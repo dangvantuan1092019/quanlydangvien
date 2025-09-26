@@ -1,6 +1,7 @@
+
 import React, { useRef, useState } from 'react';
 import type { PartyMember } from '../types';
-import { DownloadIcon, UploadIcon, EditIcon, TrashIcon, ShareIcon } from './icons';
+import { DownloadIcon, UploadIcon, EditIcon, TrashIcon } from './icons';
 
 // Declare XLSX as a global variable to satisfy TypeScript since it's loaded from a CDN
 declare const XLSX: any;
@@ -224,24 +225,6 @@ const MemberList: React.FC<MemberListProps> = ({ members, addMultipleMembers, on
         reader.readAsBinaryString(file);
     };
 
-    const handleShare = async (member: PartyMember) => {
-        const shareData = {
-          title: `Hồ sơ Đảng viên: ${member.fullName}`,
-          text: `Thông tin Đảng viên:\n- Họ và tên: ${member.fullName}\n- Chức vụ: ${member.position}\n- Số thẻ đảng: ${member.partyCardNumber}`,
-        };
-        try {
-            if (navigator.share) {
-                await navigator.share(shareData);
-            } else {
-                await navigator.clipboard.writeText(shareData.text);
-                alert('Thông tin cơ bản của Đảng viên đã được sao chép vào clipboard.');
-            }
-        } catch (err) {
-            console.error('Lỗi khi chia sẻ:', err);
-            alert('Không thể chia sẻ hoặc sao chép thông tin.');
-        }
-    };
-
     const confirmDelete = () => {
         if (memberToDelete) {
             onDelete(memberToDelete.id);
@@ -319,9 +302,6 @@ const MemberList: React.FC<MemberListProps> = ({ members, addMultipleMembers, on
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{member.officialDate ? new Date(member.officialDate).toLocaleDateString('vi-VN') : ''}</td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex items-center space-x-3">
-                            <button onClick={() => handleShare(member)} className="text-blue-600 hover:text-blue-900" title="Chia sẻ">
-                                <ShareIcon className="h-5 w-5" />
-                            </button>
                             <button onClick={() => onEdit(member)} className="text-indigo-600 hover:text-indigo-900" title="Chỉnh sửa">
                                 <EditIcon className="h-5 w-5" />
                             </button>
