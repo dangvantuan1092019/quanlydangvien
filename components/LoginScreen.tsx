@@ -23,8 +23,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ onLoginSuccess }) => {
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-2xl">
         <div className="text-center">
-          <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/fa/Emblem_of_the_Communist_Party_of_Vietnam.svg/1200px-Emblem_of_the_Communist_Party_of_Vietnam.svg.png" alt="Party Emblem" className="w-24 h-24 mx-auto mb-4"/>
-          <h1 className="text-3xl font-bold text-brand-red">QUẢN LÝ HỒ SƠ ĐẢNG VIÊN</h1>
+          <h1 className="text-3xl font-bold text-brand-red mb-4">QUẢN LÝ HỒ SƠ ĐẢNG VIÊN</h1>
           <p className="mt-2 text-gray-600">Vui lòng đăng nhập để tiếp tục</p>
         </div>
         <form className="space-y-6" onSubmit={handleLogin}>
