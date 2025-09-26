@@ -136,11 +136,11 @@ const MemberForm: React.FC<MemberFormProps> = ({ addMember, editingMember, updat
         {/* Form Fields */}
         <div className="col-span-1">
           <label className="block text-sm font-medium text-gray-700">Họ và tên</label>
-          <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-red focus:ring-brand-red sm:text-sm"/>
+          <input type="text" name="fullName" value={formData.fullName || ''} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-red focus:ring-brand-red sm:text-sm"/>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">Ngày sinh</label>
-          <input type="date" name="dateOfBirth" value={formData.dateOfBirth} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-red focus:ring-brand-red sm:text-sm"/>
+          <input type="date" name="dateOfBirth" value={formData.dateOfBirth || ''} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-red focus:ring-brand-red sm:text-sm"/>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">Giới tính</label>
@@ -168,23 +168,23 @@ const MemberForm: React.FC<MemberFormProps> = ({ addMember, editingMember, updat
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">Chức vụ</label>
-          <input type="text" name="position" value={formData.position} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-red focus:ring-brand-red sm:text-sm"/>
+          <input type="text" name="position" value={formData.position || ''} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-red focus:ring-brand-red sm:text-sm"/>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">Trình độ lý luận chính trị</label>
-          <input type="text" name="politicalTheoryLevel" value={formData.politicalTheoryLevel} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-red focus:ring-brand-red sm:text-sm"/>
+          <input type="text" name="politicalTheoryLevel" value={formData.politicalTheoryLevel || ''} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-red focus:ring-brand-red sm:text-sm"/>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">Số thẻ đảng</label>
-          <input type="text" name="partyCardNumber" value={formData.partyCardNumber} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-red focus:ring-brand-red sm:text-sm"/>
+          <input type="text" name="partyCardNumber" value={formData.partyCardNumber || ''} onChange={handleChange} required className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-red focus:ring-brand-red sm:text-sm"/>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">Ngày kết nạp đảng</label>
-          <input type="date" name="admissionDate" value={formData.admissionDate} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-red focus:ring-brand-red sm:text-sm"/>
+          <input type="date" name="admissionDate" value={formData.admissionDate || ''} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-red focus:ring-brand-red sm:text-sm"/>
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700">Ngày chính thức vào đảng</label>
-          <input type="date" name="officialDate" value={formData.officialDate} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-red focus:ring-brand-red sm:text-sm"/>
+          <input type="date" name="officialDate" value={formData.officialDate || ''} onChange={handleChange} className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-brand-red focus:ring-brand-red sm:text-sm"/>
         </div>
         
         {/* Training Courses */}
