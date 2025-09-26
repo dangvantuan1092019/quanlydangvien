@@ -88,24 +88,29 @@ const MemberForm: React.FC<MemberFormProps> = ({ addMember, editingMember, updat
     link.click();
   };
   
-  const handleImportJson = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const fileReader = new FileReader();
-    if(e.target.files && e.target.files[0]) {
-      fileReader.readAsText(e.target.files[0], "UTF-8");
-      fileReader.onload = e => {
-        if(e.target?.result) {
-            try {
-                const importedData = JSON.parse(e.target.result as string);
-                // Ensure trainingCourses is an array after import
-                if (typeof importedData.trainingCourses === 'string') {
-                    importedData.trainingCourses = [{ name: importedData.trainingCourses, date: '' }];
-                }
-                setFormData(prev => ({...prev, ...importedData}));
-            } catch(error) {
-                alert("File JSON không hợp lệ!");
-            }
+  const handleImportJson = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+        const text = await file.text();
+        const importedData = JSON.parse(text);
+        
+        // Ensure trainingCourses is an array after import
+        if (typeof importedData.trainingCourses === 'string') {
+            importedData.trainingCourses = [{ name: importedData.trainingCourses, date: '' }];
+        } else if (!Array.isArray(importedData.trainingCourses)) {
+            importedData.trainingCourses = [];
         }
-      };
+
+        setFormData(prev => ({...prev, ...importedData}));
+    } catch(error) {
+        console.error("Error importing JSON file:", error);
+        alert("File JSON không hợp lệ!");
+    } finally {
+        if (importFileRef.current) {
+            importFileRef.current.value = '';
+        }
     }
   };
 

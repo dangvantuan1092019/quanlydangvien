@@ -94,81 +94,77 @@ const MemberList: React.FC<MemberListProps> = ({ members, addMultipleMembers, on
         XLSX.writeFile(workbook, "mau-nhap-lieu-dang-vien.xlsx");
     };
 
-    const handleImportExcel = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImportExcel = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
-        const reader = new FileReader();
-        reader.onload = (event) => {
-            try {
-                const data = event.target?.result;
-                const workbook = XLSX.read(data, { type: 'binary', cellDates: true });
-                const sheetName = workbook.SheetNames[0];
-                const worksheet = workbook.Sheets[sheetName];
-                const json = XLSX.utils.sheet_to_json(worksheet) as any[];
+        try {
+            const data = await file.arrayBuffer();
+            const workbook = XLSX.read(data, { type: 'array', cellDates: true });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const json = XLSX.utils.sheet_to_json(worksheet) as any[];
 
-                const headerMapping: { [key: string]: keyof PartyMember } = {
-                  'Họ và tên': 'fullName',
-                  'Ngày sinh': 'dateOfBirth',
-                  'Giới tính': 'gender',
-                  'Dân tộc': 'ethnicity',
-                  'Tôn giáo': 'religion',
-                  'Mã định danh': 'idCode',
-                  'Trình độ học vấn': 'educationLevel',
-                  'Chức vụ': 'position',
-                  'Trình độ lý luận chính trị': 'politicalTheoryLevel',
-                  'Số thẻ đảng': 'partyCardNumber',
-                  'Ngày kết nạp': 'admissionDate',
-                  'Ngày chính thức': 'officialDate',
-                  'Các lớp bồi dưỡng': 'trainingCourses',
-                };
-                
-                const formatDate = (date: any) : string => {
-                    if (!date || !(date instanceof Date)) return '';
-                    const tzoffset = date.getTimezoneOffset() * 60000;
-                    const localISOTime = (new Date(date.getTime() - tzoffset)).toISOString().split('T')[0];
-                    return localISOTime;
-                }
+            const headerMapping: { [key: string]: keyof PartyMember } = {
+                'Họ và tên': 'fullName',
+                'Ngày sinh': 'dateOfBirth',
+                'Giới tính': 'gender',
+                'Dân tộc': 'ethnicity',
+                'Tôn giáo': 'religion',
+                'Mã định danh': 'idCode',
+                'Trình độ học vấn': 'educationLevel',
+                'Chức vụ': 'position',
+                'Trình độ lý luận chính trị': 'politicalTheoryLevel',
+                'Số thẻ đảng': 'partyCardNumber',
+                'Ngày kết nạp': 'admissionDate',
+                'Ngày chính thức': 'officialDate',
+                'Các lớp bồi dưỡng': 'trainingCourses',
+            };
+            
+            const formatDate = (date: any) : string => {
+                if (!date || !(date instanceof Date)) return '';
+                const tzoffset = date.getTimezoneOffset() * 60000;
+                const localISOTime = (new Date(date.getTime() - tzoffset)).toISOString().split('T')[0];
+                return localISOTime;
+            }
 
-                const newMembers: PartyMember[] = json.map((row: any) => {
-                    const member: Partial<PartyMember> = { id: new Date().toISOString() + Math.random() };
-                    for (const key in headerMapping) {
-                        if (row[key] !== undefined) {
-                            const memberKey = headerMapping[key];
-                            if(memberKey === 'dateOfBirth' || memberKey === 'admissionDate' || memberKey === 'officialDate') {
-                                (member as any)[memberKey] = formatDate(row[key]);
-                            } else if (memberKey === 'trainingCourses') {
-                                const coursesString = String(row[key]);
-                                (member as any)[memberKey] = coursesString ? [{ name: coursesString, date: '' }] : [];
-                            }
-                            else {
-                                (member as any)[memberKey] = String(row[key]);
-                            }
+            const newMembers: PartyMember[] = json.map((row: any) => {
+                const member: Partial<PartyMember> = { id: new Date().toISOString() + Math.random() };
+                for (const key in headerMapping) {
+                    if (row[key] !== undefined) {
+                        const memberKey = headerMapping[key];
+                        if(memberKey === 'dateOfBirth' || memberKey === 'admissionDate' || memberKey === 'officialDate') {
+                            (member as any)[memberKey] = formatDate(row[key]);
+                        } else if (memberKey === 'trainingCourses') {
+                            const coursesString = String(row[key]);
+                            (member as any)[memberKey] = coursesString ? [{ name: coursesString, date: '' }] : [];
+                        }
+                        else {
+                            (member as any)[memberKey] = String(row[key]);
                         }
                     }
-                    if (!member.fullName) member.fullName = 'Không có tên';
-                    if (!member.partyCardNumber) member.partyCardNumber = 'Chưa có số thẻ';
-                    if (!member.gender) member.gender = 'Khác';
-                    if (!member.trainingCourses) member.trainingCourses = [];
-
-                    return member as PartyMember;
-                }).filter(m => m.fullName && m.partyCardNumber && m.fullName !== 'Không có tên');
-
-                if (newMembers.length > 0) {
-                    addMultipleMembers(newMembers);
-                } else {
-                    alert('Không tìm thấy dữ liệu Đảng viên hợp lệ trong file. Vui lòng kiểm tra lại định dạng file.');
                 }
-            } catch (error) {
-                console.error("Error importing Excel file:", error);
-                alert('Có lỗi xảy ra khi nhập file. File có thể không đúng định dạng.');
-            } finally {
-                if (importFileRef.current) {
-                    importFileRef.current.value = '';
-                }
+                if (!member.fullName) member.fullName = 'Không có tên';
+                if (!member.partyCardNumber) member.partyCardNumber = 'Chưa có số thẻ';
+                if (!member.gender) member.gender = 'Khác';
+                if (!member.trainingCourses) member.trainingCourses = [];
+
+                return member as PartyMember;
+            }).filter(m => m.fullName && m.partyCardNumber && m.fullName !== 'Không có tên');
+
+            if (newMembers.length > 0) {
+                addMultipleMembers(newMembers);
+            } else {
+                alert('Không tìm thấy dữ liệu Đảng viên hợp lệ trong file. Vui lòng kiểm tra lại định dạng file.');
             }
-        };
-        reader.readAsBinaryString(file);
+        } catch (error) {
+            console.error("Error importing Excel file:", error);
+            alert('Có lỗi xảy ra khi nhập file. File có thể không đúng định dạng.');
+        } finally {
+            if (importFileRef.current) {
+                importFileRef.current.value = '';
+            }
+        }
     };
 
     const confirmDelete = () => {
