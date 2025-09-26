@@ -1,4 +1,3 @@
-
 import React, { useRef, useState } from 'react';
 import type { PartyMember } from '../types';
 import { DownloadIcon, UploadIcon, EditIcon, TrashIcon } from './icons';
@@ -28,59 +27,6 @@ const calculateAge = (dateOfBirth: string): number | string => {
 const MemberList: React.FC<MemberListProps> = ({ members, addMultipleMembers, onEdit, onDelete }) => {
     const importFileRef = useRef<HTMLInputElement>(null);
     const [memberToDelete, setMemberToDelete] = useState<PartyMember | null>(null);
-
-    const handleExportWord = () => {
-        const header = `
-            <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-            <head><meta charset='utf-8'><title>Danh Sách Đảng Viên</title>
-            <style>
-                body { font-family: 'Times New Roman', serif; }
-                table { border-collapse: collapse; width: 100%; }
-                th, td { border: 1px solid black; padding: 8px; text-align: left; }
-                th { background-color: #f2f2f2; }
-                h1 { text-align: center; }
-            </style>
-            </head><body>
-            <h1>DANH SÁCH ĐẢNG VIÊN</h1>
-        `;
-        const footer = "</body></html>";
-        const tableContent = `
-            <table>
-                <thead>
-                    <tr>
-                        <th>STT</th>
-                        <th>Họ và tên</th>
-                        <th>Tuổi</th>
-                        <th>Giới tính</th>
-                        <th>Chức vụ</th>
-                        <th>Số thẻ đảng</th>
-                        <th>Ngày vào đảng chính thức</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${members.map((member, index) => `
-                        <tr>
-                            <td>${index + 1}</td>
-                            <td>${member.fullName}</td>
-                            <td>${calculateAge(member.dateOfBirth)}</td>
-                            <td>${member.gender}</td>
-                            <td>${member.position}</td>
-                            <td>${member.partyCardNumber}</td>
-                            <td>${member.officialDate ? new Date(member.officialDate).toLocaleDateString('vi-VN') : ''}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            </table>
-        `;
-        
-        const source = header + tableContent + footer;
-        const fileDownload = document.createElement("a");
-        document.body.appendChild(fileDownload);
-        fileDownload.href = 'data:application/vnd.ms-word;charset=utf-8,' + encodeURIComponent(source);
-        fileDownload.download = 'danh-sach-dang-vien.doc';
-        fileDownload.click();
-        document.body.removeChild(fileDownload);
-    };
 
     const handleExportExcel = () => {
         const dataToExport = members.map((member, index) => ({
@@ -261,13 +207,6 @@ const MemberList: React.FC<MemberListProps> = ({ members, addMultipleMembers, on
                 >
                     <DownloadIcon className="h-5 w-5"/>
                     Xuất ra Excel
-                </button>
-                <button 
-                    onClick={handleExportWord}
-                    disabled={members.length === 0}
-                    className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 disabled:bg-gray-300 disabled:cursor-not-allowed"
-                >
-                    Xuất file Word
                 </button>
             </div>
         </div>
