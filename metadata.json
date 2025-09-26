@@ -1,0 +1,5 @@
+{
+  "name": "QUẢN LÝ HỒ SƠ ĐẢNG VIÊN",
+  "description": "Một ứng dụng web để quản lý thông tin hồ sơ của các đảng viên, bao gồm thông tin cá nhân, quá trình công tác, và thống kê.",
+  "requestFramePermissions": []
+}
