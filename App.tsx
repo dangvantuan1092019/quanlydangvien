@@ -1,37 +1,10 @@
 
 import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
-import LoginScreen from './components/LoginScreen';
 import MemberForm from './components/MemberForm';
 import MemberList from './components/MemberList';
 import Dashboard from './components/Dashboard';
-import { UserPlusIcon, ListIcon, ChartIcon, LogoutIcon, UploadIcon, DownloadIcon, ExclamationCircleIcon } from './components/icons';
+import { UserPlusIcon, ListIcon, ChartIcon, UploadIcon, DownloadIcon, ExclamationCircleIcon } from './components/icons';
 import type { PartyMember, AppView } from './types';
-
-// Extend the Window interface for Google APIs
-declare global {
-    interface Window {
-        google: any;
-        process: {
-            env: {
-                [key: string]: string | undefined;
-            }
-        }
-    }
-}
-
-// ==========================================================================================
-// QUAN TRỌNG: Google Client ID được lấy từ biến môi trường GOOGLE_CLIENT_ID.
-// Để chạy ở chế độ local, hãy để trống biến môi trường này.
-// Hướng dẫn lấy Client ID: https://developers.google.com/identity/gsi/web/guides/get-google-api-clientid
-// ==========================================================================================
-const GOOGLE_CLIENT_ID = (process.env.GOOGLE_CLIENT_ID || "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com").trim();
-
-
-const LOCAL_USER = {
-    name: 'Chế độ Local',
-    picture: 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0iIzY2NkI3NCI+PHBhdGggZD0iTTEyIDJDNi40OCAyIDIgNi40OCAyIDEyczQuNDggMTAgMTAgMTAgMTAtNC40OCAxMC0xMFMxNy41MiAyIDEyIDJ6bTcgMTcuOTRsLTEuNDEtMS40MWMtMS40My0xLjQzLTMuMzYtMi4yMi01LjU5LTIuMjJzLTQuMTYuNzktNS41OSAyLjIyTDMuMDYgMTkuOTRDNC42NSAxOC4yOSA3LjE2IDE3IDEwIDE3aDRjMi44NCAwIDUuMzUgMS4yOSA2Ljk0IDIuOTR6TTEyIDE1Yy0yLjc2IDAtNS0yLjI0LTUtNXMwLTUgNS01IDUgMi4yNCA1IDVzLTIuMjQgNS01IDV6Ii8+PC9zdmc+',
-    email: 'local@user.com',
-};
 
 
 const App: React.FC = () => {
@@ -47,98 +20,8 @@ const App: React.FC = () => {
     });
     const [currentView, setCurrentView] = useState<AppView>('list');
     const [editingMember, setEditingMember] = useState<PartyMember | null>(null);
-    const [loadConfirmation, setLoadConfirmation] = useState<{data: PartyMember[], source: 'local' } | null>(null);
-
-    // Google Auth & API State
-    const isGoogleConfigured = GOOGLE_CLIENT_ID !== "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com";
-    
-    const [userProfile, setUserProfile] = useState<any>(() => {
-        if (!isGoogleConfigured) {
-            return LOCAL_USER;
-        }
-        return null;
-    });
-
-    const [tokenClient, setTokenClient] = useState<any>(null);
+    const [loadConfirmation, setLoadConfirmation] = useState<{data: PartyMember[] } | null>(null);
     const loadFileRef = useRef<HTMLInputElement>(null);
-    const gsiInitialized = useRef(false);
-
-    const SCOPES = 'openid profile email';
-
-    // --- GOOGLE API INITIALIZATION ---
-    const initializeGsiClient = useCallback(() => {
-        if (!isGoogleConfigured) {
-            console.warn(
-                'CHÚ Ý: Google Client ID chưa được cấu hình. Ứng dụng đang chạy ở chế độ local. Mọi dữ liệu sẽ được lưu trên trình duyệt của bạn.'
-            );
-            return;
-        }
-
-        if (gsiInitialized.current || !window.google?.accounts?.oauth2) return;
-        gsiInitialized.current = true;
-        
-        try {
-            const client = window.google.accounts.oauth2.initTokenClient({
-                client_id: GOOGLE_CLIENT_ID,
-                scope: SCOPES,
-                callback: async (tokenResponse: any) => {
-                    if (tokenResponse && tokenResponse.access_token) {
-                        const profile = await fetchUserProfile(tokenResponse.access_token);
-                        setUserProfile(profile);
-                    }
-                },
-            });
-            setTokenClient(client);
-        } catch (error) {
-            console.error("Lỗi khi khởi tạo Google Sign-In:", error);
-        }
-    }, [isGoogleConfigured]);
-
-    useEffect(() => {
-        const gsiScript = document.querySelector('script[src="https://accounts.google.com/gsi/client"]');
-
-        const handleGsiLoad = () => {
-            if (window.google && window.google.accounts) {
-                initializeGsiClient();
-            }
-        };
-
-        if (window.google && window.google.accounts) {
-             handleGsiLoad();
-        } else if (gsiScript) {
-            gsiScript.addEventListener('load', handleGsiLoad);
-        }
-
-        return () => {
-            if (gsiScript) {
-                gsiScript.removeEventListener('load', handleGsiLoad);
-            }
-        };
-    }, [initializeGsiClient]);
-    
-    // --- AUTHENTICATION ---
-    const fetchUserProfile = async (token: string) => {
-        try {
-            const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                headers: { Authorization: `Bearer ${token}` },
-            });
-            if (!response.ok) throw new Error('Không thể lấy thông tin người dùng.');
-            return response.json();
-        } catch (error) {
-            console.error("Lỗi fetchUserProfile:", error);
-            return null;
-        }
-    };
-    
-    const handleGoogleLogin = () => {
-        if (tokenClient) {
-            tokenClient.requestAccessToken();
-        }
-    };
-    
-    const handleLogout = () => {
-        setUserProfile(null);
-    };
 
     // --- DATA PERSISTENCE ---
     useEffect(() => {
@@ -174,7 +57,7 @@ const App: React.FC = () => {
             try {
                 const data = JSON.parse(e.target?.result as string);
                 if (Array.isArray(data)) {
-                    setLoadConfirmation({ data, source: 'local' });
+                    setLoadConfirmation({ data });
                 } else { throw new Error("File JSON phải chứa một mảng dữ liệu."); }
             } catch (error) {
                 alert(`Lỗi xử lý file: ${error instanceof Error ? error.message : 'Lỗi không xác định'}`);
@@ -235,11 +118,6 @@ const App: React.FC = () => {
         { id: 'dashboard', label: 'Thống kê', icon: ChartIcon },
     ], []);
 
-    if (!userProfile) {
-        // This will only be reached if Google Auth is configured but user is not logged in.
-        return <LoginScreen onLogin={handleGoogleLogin} isReady={!!tokenClient} />;
-    }
-    
     return (
         <div className="min-h-screen bg-gray-100">
             <header className="bg-brand-red shadow-md sticky top-0 z-40">
@@ -250,27 +128,11 @@ const App: React.FC = () => {
                             <input type="file" ref={loadFileRef} onChange={handleLoadDataFromFile} className="hidden" accept=".json" />
                             <button onClick={() => loadFileRef.current?.click()} title="Tải dữ liệu từ file JSON" className="p-2 text-white rounded-full hover:bg-brand-red-dark transition duration-150"><UploadIcon className="h-6 w-6" /></button>
                             <button onClick={handleSaveDataToFile} title="Lưu dữ liệu ra file JSON" className="p-2 text-white rounded-full hover:bg-brand-red-dark transition duration-150"><DownloadIcon className="h-6 w-6" /></button>
-                            <div className="flex items-center space-x-3 pl-2 border-l border-white/30">
-                                <img src={userProfile.picture} alt="Avatar" className="h-9 w-9 rounded-full" />
-                                <span className="text-white font-medium hidden md:block">{userProfile.name}</span>
-                                {isGoogleConfigured && (
-                                    <button onClick={handleLogout} className="p-2 text-white rounded-full hover:bg-brand-red-dark transition duration-150" title="Đăng xuất"><LogoutIcon className="h-6 w-6" /></button>
-                                )}
-                            </div>
                         </div>
                     </div>
                 </div>
             </header>
             
-            {!isGoogleConfigured && (
-                 <div className="bg-yellow-100 border-b border-yellow-400 text-yellow-800 px-4 py-2 text-center text-sm sticky top-20 z-30">
-                     <div className="max-w-7xl mx-auto flex items-center justify-center">
-                        <ExclamationCircleIcon className="h-5 w-5 mr-2"/>
-                        <span>Bạn đang ở chế độ local. Để kích hoạt đăng nhập Google, vui lòng cấu hình Client ID trong file <strong>App.tsx</strong>.</span>
-                     </div>
-                </div>
-            )}
-
             <nav className="bg-white shadow">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-center space-x-4">
