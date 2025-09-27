@@ -77,16 +77,3 @@ export const GoogleIcon: React.FC<{ className?: string }> = ({ className }) => (
     <path fill="none" d="M0 0h48v48H0z"></path>
   </svg>
 );
-
-export const GoogleDriveIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg className={className} version="1.1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" >
-    <g>
-        <path fill="#1da754" d="m34.5 23.5-6.5 11.5-8.5-15h15z"/>
-        <path fill="#ffca00" d="m11 40 6.5-11.5-3.5-6-12 21 8.5-3.5z"/>
-        <path fill="#006fd6" d="m24 48.5-8.5-3.5 4.5-8 8.5 15-4.5-3.5z"/>
-        <path fill="#ff4121" d="m24 48.5 15.5-27.5h-15l-4.5 3.5 4 6.5z"/>
-        <path fill="#00833d" d="m17.5 28 3.5 6-3.5 6h22l-2-3.5-2.5-4.5z"/>
-        <path fill="#26a7df" d="m11 40-8.5-17.5h15.5l-7 11.5z"/>
-    </g>
-  </svg>
-);
