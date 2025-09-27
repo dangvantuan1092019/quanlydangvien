@@ -26,12 +26,8 @@ export const LogoutIcon: React.FC<{ className?: string }> = ({ className }) => (
 );
 
 export const UploadIcon: React.FC<{ className?: string }> = ({ className }) => (
-  <svg xmlns="http://www.w3.org/2000/svg" className={className} viewBox="0 0 20 20" fill="currentColor">
-    <path d="M5.5 13.5A1.5 1.5 0 014 12V6.5a1.5 1.5 0 013 0V12a1.5 1.5 0 01-1.5 1.5z" />
-    <path d="M6 12.5a.5.5 0 01-1 0V6.5a.5.5 0 011 0v6z" />
-    <path d="M14.5 13.5a1.5 1.5 0 01-1.5-1.5V6.5a1.5 1.5 0 013 0V12a1.5 1.5 0 01-1.5 1.5z" />
-    <path d="M14 12.5a.5.5 0 01-1 0V6.5a.5.5 0 011 0v6z" />
-    <path fillRule="evenodd" d="M1.5 5A1.5 1.5 0 013 3.5h14A1.5 1.5 0 0118.5 5v10a1.5 1.5 0 01-1.5 1.5H3A1.5 1.5 0 011.5 15V5zM3 5h14v10H3V5z" />
+  <svg xmlns="http://www.w3.org/2000/svg" className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
   </svg>
 );
 

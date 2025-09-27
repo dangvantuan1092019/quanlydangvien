@@ -4,7 +4,7 @@ import LoginScreen from './components/LoginScreen';
 import MemberForm from './components/MemberForm';
 import MemberList from './components/MemberList';
 import Dashboard from './components/Dashboard';
-import { UserPlusIcon, ListIcon, ChartIcon, LogoutIcon, CheckCircleIcon, LoadingSpinner, ExclamationCircleIcon } from './components/icons';
+import { UserPlusIcon, ListIcon, ChartIcon, LogoutIcon, CheckCircleIcon, LoadingSpinner, ExclamationCircleIcon, UploadIcon, DownloadIcon } from './components/icons';
 import type { PartyMember, AppView } from './types';
 
 const App: React.FC = () => {
@@ -21,12 +21,12 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>('form');
   const [editingMember, setEditingMember] = useState<PartyMember | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
+  const [loadConfirmation, setLoadConfirmation] = useState<PartyMember[] | null>(null);
+  
   const isInitialMount = useRef(true);
+  const loadFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    // Effect này xử lý việc lưu danh sách đảng viên vào localStorage.
-    // Nó sẽ bỏ qua lần render đầu tiên để tránh thông báo "Đang lưu..." nhấp nháy khi tải.
-    // Trong những lần thay đổi tiếp theo, nó sẽ lưu dữ liệu ngay lập tức để đảm bảo độ tin cậy.
     if (isInitialMount.current) {
       isInitialMount.current = false;
       return;
@@ -35,8 +35,6 @@ const App: React.FC = () => {
     setSaveStatus('saving');
     try {
         localStorage.setItem('partyMembers', JSON.stringify(members));
-        // Chúng tôi đặt trạng thái thành 'đã lưu' sau một khoảng trễ rất ngắn để làm cho
-        // quá trình chuyển đổi giao diện người dùng mượt mà hơn, nhưng thao tác lưu thực tế đã hoàn tất đồng bộ.
         const timer = setTimeout(() => setSaveStatus('saved'), 100);
         return () => clearTimeout(timer);
     } catch (error) {
@@ -46,7 +44,6 @@ const App: React.FC = () => {
   }, [members]);
   
   useEffect(() => {
-      // Effect này chịu trách nhiệm xóa thông báo trạng thái sau vài giây.
       if (saveStatus === 'saved' || saveStatus === 'failed') {
           const duration = saveStatus === 'saved' ? 2000 : 5000;
           const timer = setTimeout(() => {
@@ -98,6 +95,71 @@ const App: React.FC = () => {
     setCurrentView('list');
   }, []);
 
+  const handleSaveDataToFile = () => {
+    if (members.length === 0) {
+        alert("Không có dữ liệu để lưu.");
+        return;
+    }
+    try {
+        const jsonString = JSON.stringify(members, null, 2);
+        const blob = new Blob([jsonString], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        const date = new Date().toISOString().slice(0, 10);
+        link.download = `du-lieu-dang-vien-${date}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error("Lỗi khi lưu dữ liệu:", error);
+        alert("Đã xảy ra lỗi khi lưu dữ liệu.");
+    }
+  };
+
+  const handleLoadDataFromFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+          try {
+              const text = e.target?.result;
+              if (typeof text !== 'string') {
+                  throw new Error("Không thể đọc file.");
+              }
+              const data = JSON.parse(text);
+              if (Array.isArray(data)) {
+                  setLoadConfirmation(data);
+              } else {
+                  throw new Error("File JSON không hợp lệ. Dữ liệu phải là một mảng các Đảng viên.");
+              }
+          } catch (error) {
+              console.error("Lỗi khi tải dữ liệu:", error);
+              alert(`Đã xảy ra lỗi khi xử lý file: ${error instanceof Error ? error.message : 'Lỗi không xác định'}`);
+          } finally {
+              if (loadFileRef.current) {
+                  loadFileRef.current.value = '';
+              }
+          }
+      };
+      reader.readAsText(file);
+  };
+
+  const confirmLoadData = () => {
+      if (loadConfirmation) {
+          setMembers(loadConfirmation);
+          setLoadConfirmation(null);
+          alert("Đã tải dữ liệu thành công!");
+          setCurrentView('list');
+      }
+  };
+
+  const cancelLoadData = () => {
+      setLoadConfirmation(null);
+  };
+
   const navItems = useMemo(() => [
     { id: 'form', label: 'Thêm Hồ sơ', icon: UserPlusIcon },
     { id: 'list', label: 'Danh sách', icon: ListIcon },
@@ -126,7 +188,7 @@ const App: React.FC = () => {
               </h1>
             </div>
             <div className="flex items-center space-x-6">
-                <div className="flex items-center text-sm text-white h-6 w-32">
+                <div className="flex items-center text-sm text-white h-6 min-w-32">
                     {saveStatus === 'saving' && (
                         <div className="flex items-center text-gray-300">
                             <LoadingSpinner className="h-5 w-5 mr-2 animate-spin" />
@@ -146,6 +208,30 @@ const App: React.FC = () => {
                         </div>
                     )}
                 </div>
+
+                <input
+                    type="file"
+                    ref={loadFileRef}
+                    onChange={handleLoadDataFromFile}
+                    className="hidden"
+                    accept=".json"
+                />
+                <button
+                    onClick={() => loadFileRef.current?.click()}
+                    className="flex items-center text-white hover:text-brand-gold transition duration-150"
+                    title="Tải dữ liệu từ file JSON"
+                >
+                    <UploadIcon className="h-6 w-6 mr-2" />
+                    Tải dữ liệu
+                </button>
+                <button
+                    onClick={handleSaveDataToFile}
+                    className="flex items-center text-white hover:text-brand-gold transition duration-150"
+                    title="Lưu toàn bộ dữ liệu ra file JSON"
+                >
+                    <DownloadIcon className="h-5 w-5 mr-2" />
+                    Lưu dữ liệu
+                </button>
 
                 <button onClick={handleLogout} className="flex items-center text-white hover:text-brand-gold transition duration-150">
                     <LogoutIcon className="h-6 w-6 mr-2" />
@@ -198,6 +284,38 @@ const App: React.FC = () => {
           {currentView === 'dashboard' && <Dashboard members={members} />}
         </div>
       </main>
+
+      {loadConfirmation && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
+          <div className="relative mx-auto p-5 border w-full max-w-md shadow-lg rounded-md bg-white">
+            <div className="mt-3 text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100">
+                <ExclamationCircleIcon className="h-6 w-6 text-yellow-600" />
+              </div>
+              <h3 className="text-lg leading-6 font-medium text-gray-900 mt-4">Xác nhận tải dữ liệu</h3>
+              <div className="mt-2 px-7 py-3">
+                <p className="text-sm text-gray-500">
+                  Hành động này sẽ <span className="font-bold text-red-600">thay thế toàn bộ</span> dữ liệu hiện tại bằng dữ liệu từ file bạn chọn. Bạn có chắc chắn muốn tiếp tục không?
+                </p>
+              </div>
+              <div className="items-center px-4 py-3 space-x-4">
+                <button
+                  onClick={cancelLoadData}
+                  className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none"
+                >
+                  Hủy bỏ
+                </button>
+                <button
+                  onClick={confirmLoadData}
+                  className="px-4 py-2 bg-brand-red text-white rounded-md hover:bg-brand-red-dark focus:outline-none"
+                >
+                  Xác nhận
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+    )}
     </div>
   );
 };
