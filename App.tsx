@@ -1,10 +1,10 @@
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import LoginScreen from './components/LoginScreen';
 import MemberForm from './components/MemberForm';
 import MemberList from './components/MemberList';
 import Dashboard from './components/Dashboard';
-import { UserPlusIcon, ListIcon, ChartIcon, LogoutIcon } from './components/icons';
+import { UserPlusIcon, ListIcon, ChartIcon, LogoutIcon, CheckCircleIcon, LoadingSpinner } from './components/icons';
 import type { PartyMember, AppView } from './types';
 
 const App: React.FC = () => {
@@ -20,14 +20,38 @@ const App: React.FC = () => {
   });
   const [currentView, setCurrentView] = useState<AppView>('form');
   const [editingMember, setEditingMember] = useState<PartyMember | null>(null);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const isInitialMount = useRef(true);
 
   useEffect(() => {
-    try {
-      localStorage.setItem('partyMembers', JSON.stringify(members));
-    } catch (error) {
-      console.error("Không thể lưu dữ liệu Đảng viên vào localStorage", error);
+    if (isInitialMount.current) {
+        isInitialMount.current = false;
+        return;
     }
+    
+    setSaveStatus('saving');
+    const saveTimer = setTimeout(() => {
+        try {
+            localStorage.setItem('partyMembers', JSON.stringify(members));
+            setSaveStatus('saved');
+        } catch (error) {
+            console.error("Không thể lưu dữ liệu Đảng viên vào localStorage", error);
+        }
+    }, 300);
+
+    return () => {
+        clearTimeout(saveTimer);
+    };
   }, [members]);
+  
+  useEffect(() => {
+      if (saveStatus === 'saved') {
+          const timer = setTimeout(() => {
+              setSaveStatus('idle');
+          }, 2000);
+          return () => clearTimeout(timer);
+      }
+  }, [saveStatus]);
 
   const handleLoginSuccess = useCallback(() => {
     setIsLoggedIn(true);
@@ -98,10 +122,27 @@ const App: React.FC = () => {
                 Hệ Thống Quản Lý Hồ Sơ Đảng Viên
               </h1>
             </div>
-            <button onClick={handleLogout} className="flex items-center text-white hover:text-brand-gold transition duration-150">
-                <LogoutIcon className="h-6 w-6 mr-2" />
-                Đăng xuất
-            </button>
+            <div className="flex items-center space-x-6">
+                <div className="flex items-center text-sm text-white h-6 w-28">
+                    {saveStatus === 'saving' && (
+                        <div className="flex items-center text-gray-300">
+                            <LoadingSpinner className="h-5 w-5 mr-2 animate-spin" />
+                            <span>Đang lưu...</span>
+                        </div>
+                    )}
+                    {saveStatus === 'saved' && (
+                        <div className="flex items-center text-brand-gold">
+                            <CheckCircleIcon className="h-5 w-5 mr-2" />
+                            <span className="font-semibold">Đã lưu!</span>
+                        </div>
+                    )}
+                </div>
+
+                <button onClick={handleLogout} className="flex items-center text-white hover:text-brand-gold transition duration-150">
+                    <LogoutIcon className="h-6 w-6 mr-2" />
+                    Đăng xuất
+                </button>
+            </div>
           </div>
         </div>
       </header>
