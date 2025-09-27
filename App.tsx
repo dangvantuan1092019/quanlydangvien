@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import LoginScreen from './components/LoginScreen';
 import MemberForm from './components/MemberForm';
 import MemberList from './components/MemberList';
@@ -21,16 +21,11 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>('form');
   const [editingMember, setEditingMember] = useState<PartyMember | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
-  const isInitialMount = useRef(true);
 
   useEffect(() => {
-    if (isInitialMount.current) {
-        isInitialMount.current = false;
-        return;
-    }
-    
+    // The check to skip the initial save has been removed to make saving more reliable.
+    // This may cause a brief "Saving..." message on startup, but it ensures all changes are persisted correctly.
     setSaveStatus('saving');
-    // Sử dụng một độ trễ nhỏ để giao diện kịp cập nhật trạng thái "Đang lưu..."
     const saveTimer = setTimeout(() => {
         try {
             localStorage.setItem('partyMembers', JSON.stringify(members));
