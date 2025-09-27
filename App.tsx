@@ -4,7 +4,7 @@ import LoginScreen from './components/LoginScreen';
 import MemberForm from './components/MemberForm';
 import MemberList from './components/MemberList';
 import Dashboard from './components/Dashboard';
-import { UserPlusIcon, ListIcon, ChartIcon, LogoutIcon, CheckCircleIcon, LoadingSpinner } from './components/icons';
+import { UserPlusIcon, ListIcon, ChartIcon, LogoutIcon, CheckCircleIcon, LoadingSpinner, ExclamationCircleIcon } from './components/icons';
 import type { PartyMember, AppView } from './types';
 
 const App: React.FC = () => {
@@ -20,7 +20,7 @@ const App: React.FC = () => {
   });
   const [currentView, setCurrentView] = useState<AppView>('form');
   const [editingMember, setEditingMember] = useState<PartyMember | null>(null);
-  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved'>('idle');
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
   const isInitialMount = useRef(true);
 
   useEffect(() => {
@@ -30,14 +30,16 @@ const App: React.FC = () => {
     }
     
     setSaveStatus('saving');
+    // Sử dụng một độ trễ nhỏ để giao diện kịp cập nhật trạng thái "Đang lưu..."
     const saveTimer = setTimeout(() => {
         try {
             localStorage.setItem('partyMembers', JSON.stringify(members));
             setSaveStatus('saved');
         } catch (error) {
             console.error("Không thể lưu dữ liệu Đảng viên vào localStorage", error);
+            setSaveStatus('failed');
         }
-    }, 300);
+    }, 50);
 
     return () => {
         clearTimeout(saveTimer);
@@ -45,10 +47,11 @@ const App: React.FC = () => {
   }, [members]);
   
   useEffect(() => {
-      if (saveStatus === 'saved') {
+      if (saveStatus === 'saved' || saveStatus === 'failed') {
+          const duration = saveStatus === 'saved' ? 2000 : 5000;
           const timer = setTimeout(() => {
               setSaveStatus('idle');
-          }, 2000);
+          }, duration);
           return () => clearTimeout(timer);
       }
   }, [saveStatus]);
@@ -123,7 +126,7 @@ const App: React.FC = () => {
               </h1>
             </div>
             <div className="flex items-center space-x-6">
-                <div className="flex items-center text-sm text-white h-6 w-28">
+                <div className="flex items-center text-sm text-white h-6 w-32">
                     {saveStatus === 'saving' && (
                         <div className="flex items-center text-gray-300">
                             <LoadingSpinner className="h-5 w-5 mr-2 animate-spin" />
@@ -134,6 +137,12 @@ const App: React.FC = () => {
                         <div className="flex items-center text-brand-gold">
                             <CheckCircleIcon className="h-5 w-5 mr-2" />
                             <span className="font-semibold">Đã lưu!</span>
+                        </div>
+                    )}
+                    {saveStatus === 'failed' && (
+                        <div className="flex items-center text-red-300">
+                            <ExclamationCircleIcon className="h-5 w-5 mr-2" />
+                            <span className="font-semibold">Lưu thất bại!</span>
                         </div>
                     )}
                 </div>
