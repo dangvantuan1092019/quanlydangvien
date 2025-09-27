@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import LoginScreen from './components/LoginScreen';
 import MemberForm from './components/MemberForm';
 import MemberList from './components/MemberList';
@@ -9,9 +9,25 @@ import type { PartyMember, AppView } from './types';
 
 const App: React.FC = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [members, setMembers] = useState<PartyMember[]>([]);
+  const [members, setMembers] = useState<PartyMember[]>(() => {
+    try {
+      const savedMembers = localStorage.getItem('partyMembers');
+      return savedMembers ? JSON.parse(savedMembers) : [];
+    } catch (error) {
+      console.error("Không thể tải dữ liệu Đảng viên từ localStorage", error);
+      return [];
+    }
+  });
   const [currentView, setCurrentView] = useState<AppView>('form');
   const [editingMember, setEditingMember] = useState<PartyMember | null>(null);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('partyMembers', JSON.stringify(members));
+    } catch (error) {
+      console.error("Không thể lưu dữ liệu Đảng viên vào localStorage", error);
+    }
+  }, [members]);
 
   const handleLoginSuccess = useCallback(() => {
     setIsLoggedIn(true);
