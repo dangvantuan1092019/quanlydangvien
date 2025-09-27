@@ -23,15 +23,9 @@ const App: React.FC = () => {
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
   const [loadConfirmation, setLoadConfirmation] = useState<PartyMember[] | null>(null);
   
-  const isInitialMount = useRef(true);
   const loadFileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-      return;
-    }
-
     setSaveStatus('saving');
     try {
         localStorage.setItem('partyMembers', JSON.stringify(members));
@@ -65,20 +59,20 @@ const App: React.FC = () => {
     setMembers([...members, member]);
     alert('Thêm Đảng viên thành công!');
     setCurrentView('list');
-  }, [members, setCurrentView]);
+  }, [members]);
   
   const addMultipleMembers = useCallback((newMembers: PartyMember[]) => {
     setMembers([...members, ...newMembers]);
     alert(`Đã nhập thành công ${newMembers.length} Đảng viên!`);
     setCurrentView('list');
-  }, [members, setCurrentView]);
+  }, [members]);
 
   const updateMember = useCallback((updatedMember: PartyMember) => {
     setMembers(members.map(m => m.id === updatedMember.id ? updatedMember : m));
     setEditingMember(null);
     setCurrentView('list');
     alert('Cập nhật thông tin thành công!');
-  }, [members, setEditingMember, setCurrentView]);
+  }, [members]);
 
   const deleteMember = useCallback((id: string) => {
     setMembers(members.filter(m => m.id !== id));
