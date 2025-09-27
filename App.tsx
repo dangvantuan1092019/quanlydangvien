@@ -62,28 +62,28 @@ const App: React.FC = () => {
   }, []);
 
   const addMember = useCallback((member: PartyMember) => {
-    setMembers(prev => [...prev, member]);
+    setMembers([...members, member]);
     alert('Thêm Đảng viên thành công!');
     setCurrentView('list');
-  }, []);
+  }, [members, setCurrentView]);
   
   const addMultipleMembers = useCallback((newMembers: PartyMember[]) => {
-    setMembers(prev => [...prev, ...newMembers]);
+    setMembers([...members, ...newMembers]);
     alert(`Đã nhập thành công ${newMembers.length} Đảng viên!`);
     setCurrentView('list');
-  }, []);
+  }, [members, setCurrentView]);
 
   const updateMember = useCallback((updatedMember: PartyMember) => {
-    setMembers(prev => prev.map(m => m.id === updatedMember.id ? updatedMember : m));
+    setMembers(members.map(m => m.id === updatedMember.id ? updatedMember : m));
     setEditingMember(null);
     setCurrentView('list');
     alert('Cập nhật thông tin thành công!');
-  }, []);
+  }, [members, setEditingMember, setCurrentView]);
 
   const deleteMember = useCallback((id: string) => {
-    setMembers(prev => prev.filter(m => m.id !== id));
+    setMembers(members.filter(m => m.id !== id));
     alert('Đã xóa Đảng viên thành công.');
-  }, []);
+  }, [members]);
 
   const startEdit = useCallback((member: PartyMember) => {
     setEditingMember(member);
