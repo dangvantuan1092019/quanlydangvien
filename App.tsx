@@ -1,5 +1,5 @@
 
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import LoginScreen from './components/LoginScreen';
 import MemberForm from './components/MemberForm';
 import MemberList from './components/MemberList';
@@ -21,27 +21,32 @@ const App: React.FC = () => {
   const [currentView, setCurrentView] = useState<AppView>('form');
   const [editingMember, setEditingMember] = useState<PartyMember | null>(null);
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'failed'>('idle');
+  const isInitialMount = useRef(true);
 
   useEffect(() => {
-    // The check to skip the initial save has been removed to make saving more reliable.
-    // This may cause a brief "Saving..." message on startup, but it ensures all changes are persisted correctly.
-    setSaveStatus('saving');
-    const saveTimer = setTimeout(() => {
-        try {
-            localStorage.setItem('partyMembers', JSON.stringify(members));
-            setSaveStatus('saved');
-        } catch (error) {
-            console.error("Không thể lưu dữ liệu Đảng viên vào localStorage", error);
-            setSaveStatus('failed');
-        }
-    }, 50);
+    // Effect này xử lý việc lưu danh sách đảng viên vào localStorage.
+    // Nó sẽ bỏ qua lần render đầu tiên để tránh thông báo "Đang lưu..." nhấp nháy khi tải.
+    // Trong những lần thay đổi tiếp theo, nó sẽ lưu dữ liệu ngay lập tức để đảm bảo độ tin cậy.
+    if (isInitialMount.current) {
+      isInitialMount.current = false;
+      return;
+    }
 
-    return () => {
-        clearTimeout(saveTimer);
-    };
+    setSaveStatus('saving');
+    try {
+        localStorage.setItem('partyMembers', JSON.stringify(members));
+        // Chúng tôi đặt trạng thái thành 'đã lưu' sau một khoảng trễ rất ngắn để làm cho
+        // quá trình chuyển đổi giao diện người dùng mượt mà hơn, nhưng thao tác lưu thực tế đã hoàn tất đồng bộ.
+        const timer = setTimeout(() => setSaveStatus('saved'), 100);
+        return () => clearTimeout(timer);
+    } catch (error) {
+        console.error("Không thể lưu dữ liệu Đảng viên vào localStorage", error);
+        setSaveStatus('failed');
+    }
   }, [members]);
   
   useEffect(() => {
+      // Effect này chịu trách nhiệm xóa thông báo trạng thái sau vài giây.
       if (saveStatus === 'saved' || saveStatus === 'failed') {
           const duration = saveStatus === 'saved' ? 2000 : 5000;
           const timer = setTimeout(() => {
